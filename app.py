@@ -263,7 +263,7 @@ def download_data(business_data):
     if business_data:
         df = pd.DataFrame(business_data, columns=['Title', 'Phone', 'Website', 'Address', 'City', 'State', 'ZIP'])
         df.index = range(1, len(df) + 1)
-        data_display.dataframe(df)
+        data_display.dataframe(df,width=5000)
 
 # If the scrape button is clicked
 if scrape_button:
@@ -283,4 +283,4 @@ if scrape_button:
 if st.session_state['business_data']:
     df = pd.DataFrame(st.session_state['business_data'], columns=['Title', 'Phone', 'Website', 'Address', 'City', 'State', 'ZIP'])
     df.index = range(1, len(df) + 1)
-    data_display.dataframe(df)
+    data_display.dataframe(df,width=5000)
