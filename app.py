@@ -77,6 +77,7 @@ with st.sidebar:
     st.markdown('<h1 class="title">Yellow Pages Scraper</h1>', unsafe_allow_html=True)
     search_terms = st.text_input('Enter search terms', value='', placeholder='Type search terms here...')
     location = st.text_input('Enter location', value='', placeholder='Type location here...')
+    uploaded_file = st.sidebar.file_uploader("Upload CSV", type=['csv'])
     scrape_button = st.button('Scrape Data')
 
     # Sidebar instructions with custom style
@@ -107,6 +108,27 @@ with info_expander:
 data_display = st.empty()
 
 # ... [Rest of your code, including scraping logic and functions, remains unchanged] ...
+def process_uploaded_file(uploaded_file):
+    if uploaded_file is not None:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(uploaded_file)
+        # Verify that the required columns are present
+        if 'SearchTerms' in df.columns and 'Location' in df.columns:
+            # Iterate over the DataFrame rows
+            all_scraped_data = []
+            for index, row in df.iterrows():
+                search_term = row['SearchTerms']
+                location = row['Location']
+                # Use the existing scraping function
+                scraped_data = scrape_yellow_pages_similer(search_term, location)
+                all_scraped_data.extend(scraped_data)
+            return all_scraped_data
+        else:
+            st.error("The uploaded CSV does not contain the required columns: 'SearchTerms' and 'Location'.")
+            return None
+    else:
+        return None
+
 
 # To run this Streamlit app, save the code in a Python file (e.g., app.py) and run it using the command: streamlit run app.py
 def scrape_yellow_pages(search_terms, location):
@@ -454,20 +476,30 @@ def download_data(business_data):
 
 # If the scrape button is clicked
 if scrape_button:
+    if uploaded_file is not None:
+        with st.spinner('Scraping data from uploaded CSV... Please wait.'):
+            scraped_data = process_uploaded_file(uploaded_file)
+            # Check if data was returned
+            if scraped_data:
+                st.success('Scraping finished!')
+                download_data(scraped_data)
+            else:
+                st.error('No data was scraped. Please check your CSV and try again.')
+    else:
     
-    with st.spinner('Scraping data... Please wait.'):
-        # Call the scrape function
-        if result_type == 'Get All Results':
-            scraped_data = scrape_yellow_pages(search_terms, location)
-        elif result_type == 'Get Similar Results':
-           scraped_data= scrape_yellow_pages_similer(search_terms, location)
+        with st.spinner('Scraping data... Please wait.'):
+            # Call the scrape function
+            if result_type == 'Get All Results':
+                scraped_data = scrape_yellow_pages(search_terms, location)
+            elif result_type == 'Get Similar Results':
+                scraped_data= scrape_yellow_pages_similer(search_terms, location)
 
-        # Check if data was returned from the scrape function
-        if scraped_data:
-            st.success('Scraping finished!')
-            download_data(scraped_data)
-        else:
-            st.error('No data was scraped. Please check your input and try again.')
+            # Check if data was returned from the scrape function
+            if scraped_data:
+                st.success('Scraping finished!')
+                download_data(scraped_data)
+            else:
+                st.error('No data was scraped. Please check your input and try again.')
 
 # To run this Streamlit app, save the code in a Python file (e.g., app.py) and run it using the command: streamlit run app.py
 if st.session_state['business_data']:
